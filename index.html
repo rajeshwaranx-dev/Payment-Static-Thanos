@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pay — Ask Movies</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Secure Payment — Ask Movies</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234338f7'/><text x='16' y='22' text-anchor='middle' font-size='18' font-weight='bold' fill='white' font-family='sans-serif'>A</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     :root {
       --brand: #4338f7; --brand-dark: #2d24c9; --brand-rgb: 67,56,247;
       --brand-light: #ede9ff; --text: #1a1a2e; --muted: #8b8fa8;
@@ -16,188 +16,219 @@
     body {
       min-height: 100vh; font-family: 'DM Sans', sans-serif;
       background: radial-gradient(ellipse at 30% 20%, #2a1780 0%, #0d0d2b 55%, #080818 100%);
-      display: flex; align-items: center; justify-content: center; padding: 28px 16px;
+      display: flex; align-items: center; justify-content: center; padding: 20px 16px;
       overflow: hidden;
     }
 
+    /* Background Orb Animation */
+    body::before {
+      content: ''; position: fixed; width: 500px; height: 500px;
+      background: rgba(var(--brand-rgb), 0.15); border-radius: 50%; filter: blur(90px);
+      top: -150px; left: -150px; pointer-events: none;
+      animation: orb 9s ease-in-out infinite alternate;
+    }
+    @keyframes orb { to { transform: translate(80px, 100px); } }
+
+    /* Skeleton Loader */
+    #skeleton { position: fixed; inset: 0; background: #080818; z-index: 1000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+    .skel-card { background: white; width: 100%; max-width: 390px; border-radius: 28px; padding: 30px; }
+    .skel-item { background: #f0f0f0; border-radius: 12px; margin-bottom: 20px; position: relative; overflow: hidden; }
+    .skel-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
     /* Main Card */
     .card {
-      position: relative; background: #fff; border-radius: 28px;
-      padding: 30px 24px 28px; width: 100%; max-width: 390px;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.45);
-      animation: cardIn 0.55s cubic-bezier(0.34,1.5,0.64,1) both;
+      position: relative; background: #fff; border-radius: 32px;
+      padding: 34px 26px; width: 100%; max-width: 400px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+      animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
       z-index: 10;
     }
-    @keyframes cardIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-    .profile { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; }
-    .avatar { width: 70px; height: 70px; border-radius: 50%; background: var(--brand-light); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: var(--brand); margin-bottom: 12px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .name { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--brand); margin-bottom: 4px; }
-    .protected { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+    .profile { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+    .avatar { width: 78px; height: 78px; border-radius: 50%; background: var(--brand-light); border: 4px solid #fff; box-shadow: 0 10px 20px rgba(var(--brand-rgb), 0.15); display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-size: 30px; font-weight: 800; color: var(--brand); margin-bottom: 12px; }
+    .name { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; color: var(--brand); letter-spacing: -0.5px; margin-bottom: 4px; }
+    .protected { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
 
-    /* QR Code */
-    .qr-box { position: relative; background: #fff; border-radius: 18px; padding: 12px; border: 2px solid var(--border); margin: 0 auto 20px; width: fit-content; }
-    #qrImage { display: block; width: 180px; height: 180px; }
+    /* QR Code Section */
+    .qr-container { display: flex; justify-content: center; margin-bottom: 22px; }
+    .qr-frame { position: relative; background: #fff; border-radius: 20px; padding: 12px; border: 2.5px solid var(--border); box-shadow: 0 12px 30px rgba(var(--brand-rgb), 0.08); }
+    #qrImage { width: 190px; height: 190px; display: block; border-radius: 8px; }
 
-    /* Buttons */
-    .btn-pay { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--brand), #6366f1); color: white; border: none; border-radius: 16px; font-family: 'Sora', sans-serif; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-pay:active { transform: scale(0.98); }
+    /* UPI ID Row */
+    .upi-badge { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; }
+    .upi-id { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: var(--brand); }
+    .copy-btn { background: var(--brand); border: none; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .copy-btn:active { transform: scale(0.9); }
+
+    /* Action Buttons */
+    .btn-main { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--brand) 0%, #6366f1 100%); color: white; border: none; border-radius: 16px; font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 12px; box-shadow: 0 10px 25px rgba(var(--brand-rgb), 0.3); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .btn-main:active { transform: translateY(2px); }
     
-    .btn-secondary { width: 100%; padding: 12px; background: #fff; color: var(--brand); border: 1.5px solid var(--brand); border-radius: 14px; font-weight: 600; cursor: pointer; margin-bottom: 8px; font-size: 14px; }
+    .btn-ghost { width: 100%; padding: 14px; background: transparent; color: var(--brand); border: 2px solid var(--brand); border-radius: 16px; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
 
     /* Bottom Sheet Overlay */
-    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+    .overlay { position: fixed; inset: 0; background: rgba(8,8,24,0.8); backdrop-filter: blur(8px); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s; display: flex; align-items: flex-end; justify-content: center; }
     .overlay.show { opacity: 1; pointer-events: all; }
 
-    /* Bottom Sheet Content */
-    .sheet { background: white; width: 100%; max-width: 450px; border-radius: 24px 24px 0 0; padding: 20px 20px 40px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.17, 0.84, 0.44, 1); }
-    .overlay.show .sheet { transform: translateY(0); }
-    .handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 20px; }
-    .sheet-title { text-align: center; font-family: 'Sora', sans-serif; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+    /* Bottom Sheet Drawer */
+    .drawer { 
+        background: #fff; width: 100%; max-width: 450px; border-radius: 32px 32px 0 0; padding: 12px 24px 44px; 
+        transform: translateY(100%); transition: 0.4s cubic-bezier(0.32, 1, 0.23, 1); 
+    }
+    .overlay.show .drawer { transform: translateY(0); }
+    .drawer-handle { width: 42px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 24px; }
+    .drawer-title { text-align: center; font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--text); }
 
-    /* App Grid */
-    .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .app-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
-    .app-icon { width: 54px; height: 54px; border-radius: 14px; border: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
-    .app-item:active .app-icon { transform: scale(0.9); }
-    .app-name { font-size: 11px; font-weight: 600; color: #444; text-align: center; }
+    /* App Grid with Real Logos */
+    .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 12px; }
+    .app-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+    .app-item:active { transform: scale(0.9); }
+    .app-icon { width: 58px; height: 58px; border-radius: 15px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; }
+    .app-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .app-name { font-size: 11px; font-weight: 700; color: #4b5563; text-align: center; font-family: 'DM Sans', sans-serif; }
 
-    /* Specific App Logos (using background colors & simplified icons) */
-    .logo-gpay { background: #fff; color: #4285F4; font-weight: 900; }
-    .logo-phonepe { background: #5f259f; color: white; font-weight: 700; }
-    .logo-paytm { background: #00baf2; color: white; font-weight: 800; }
-    .logo-bhim { background: #f6891f; color: white; font-weight: 700; }
-    .logo-amazon { background: #232f3e; color: #ff9900; font-weight: 700; }
-    .logo-cred { background: #000; color: white; font-weight: 400; }
-    .logo-groww { background: #00d09c; color: white; }
-    .logo-wa { background: #25D366; color: white; }
-
-    /* Skeleton */
-    #skeleton { position: fixed; inset: 0; background: #080818; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-    .skel-card { background: white; width: 350px; height: 450px; border-radius: 28px; padding: 30px; }
-    .skel-line { background: #eee; height: 20px; border-radius: 10px; margin-bottom: 20px; }
-
-    .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 2000; }
-    .toast.show { opacity: 1; }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 3000; pointer-events: none; }
+    .toast.show { opacity: 1; bottom: 40px; }
   </style>
 </head>
 <body>
 
+<!-- High-End Skeleton Loader -->
 <div id="skeleton">
   <div class="skel-card">
-    <div class="skel-line" style="width: 40%; margin: 0 auto 30px; height: 70px; border-radius: 50%;"></div>
-    <div class="skel-line" style="width: 60%; margin: 0 auto;"></div>
-    <div class="skel-line" style="height: 180px; margin-top: 30px;"></div>
+    <div class="skel-item" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px;"></div>
+    <div class="skel-item" style="width: 140px; height: 25px; margin: 0 auto 30px;"></div>
+    <div class="skel-item" style="height: 190px; border-radius: 20px;"></div>
+    <div class="skel-item" style="height: 50px;"></div>
+    <div class="skel-item" style="height: 60px; border-radius: 16px;"></div>
   </div>
 </div>
 
 <div class="card">
   <div class="profile">
     <div class="avatar">R</div>
-    <div class="name">Ask Movies</div>
+    <h1 class="name">Ask Movies</h1>
     <div class="protected">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Secure UPI Payment
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Secure Fixed QR Payment
     </div>
   </div>
 
-  <div class="qr-box">
-    <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=Rajeshtg18x@ibl%26pn=Ask%20Movies%26cu=INR" alt="QR Code">
+  <div class="qr-container">
+    <div class="qr-frame">
+      <!-- Fixed QR for Rajeshtg18x@ibl -->
+      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=Rajeshtg18x@ibl%26pn=Ask%20Movies%26cu=INR" alt="UPI QR">
+    </div>
   </div>
 
-  <button class="btn-pay" onclick="openSheet()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-    Pay with App
-  </button>
+  <div class="upi-badge">
+    <span class="upi-id" id="upiText">Rajeshtg18x@ibl</span>
+    <button class="copy-btn" onclick="copyUPI()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+  </div>
+
+  <button class="btn-main" onclick="openDrawer()">Pay with UPI App</button>
+  <button class="btn-ghost" onclick="downloadQR()">Save QR to Gallery</button>
   
-  <button class="btn-secondary" onclick="copyUPI()">Copy UPI ID</button>
-  <button class="btn-secondary" style="border-color:#ccc; color:#666;" onclick="window.open('https://t.me/your_admin')">Help & Support</button>
+  <p style="text-align:center; font-size:12px; color: #94a3b8; margin-top: 10px; line-height: 1.4;">
+    After payment, send the screenshot to <br><strong>@Admin</strong> for verification.
+  </p>
 </div>
 
-<!-- APP SELECTOR SHEET -->
-<div class="overlay" id="overlay" onclick="closeSheet()">
-  <div class="sheet" onclick="event.stopPropagation()">
-    <div class="handle"></div>
-    <div class="sheet-title">Select UPI App</div>
+<!-- UPI APP DRAWER -->
+<div class="overlay" id="drawerOverlay" onclick="closeDrawer()">
+  <div class="drawer" onclick="event.stopPropagation()">
+    <div class="drawer-handle"></div>
+    <h2 class="drawer-title">Choose Payment App</h2>
     
     <div class="app-grid">
-      <!-- GPay -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-gpay">GPay</div>
+      <!-- Google Pay -->
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/gpay.png" alt="GPay"></div>
         <div class="app-name">G-Pay</div>
       </div>
       <!-- PhonePe -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-phonepe">Pe</div>
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/phonepe.png" alt="PhonePe"></div>
         <div class="app-name">PhonePe</div>
       </div>
       <!-- Paytm -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-paytm">Paytm</div>
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/paytm.png" alt="Paytm"></div>
         <div class="app-name">Paytm</div>
       </div>
       <!-- Amazon Pay -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-amazon">Amazon</div>
-        <div class="app-name">Amazon</div>
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/amazonpay.png" alt="Amazon"></div>
+        <div class="app-name">Amazon Pay</div>
       </div>
       <!-- BHIM -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-bhim">BHIM</div>
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/bhim.png" alt="BHIM"></div>
         <div class="app-name">BHIM</div>
       </div>
-      <!-- Cred -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-cred">CRED</div>
+      <!-- CRED -->
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/cred.png" alt="CRED"></div>
         <div class="app-name">CRED</div>
       </div>
       <!-- Groww -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-groww">G</div>
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/groww.png" alt="Groww"></div>
         <div class="app-name">Groww</div>
       </div>
-      <!-- WhatsApp -->
-      <div class="app-item" onclick="triggerUPI()">
-        <div class="app-icon logo-wa">WA</div>
-        <div class="app-name">WhatsApp</div>
+      <!-- Mobikwik -->
+      <div class="app-item" onclick="launchUPI()">
+        <div class="app-icon"><img src="https://vqr.vc/logos/mobikwik.png" alt="Mobikwik"></div>
+        <div class="app-name">Mobikwik</div>
       </div>
     </div>
-    
-    <button class="btn-secondary" style="margin-top: 30px; width: 100%;" onclick="closeSheet()">Cancel</button>
+
+    <button class="btn-ghost" style="margin-top: 30px; border-color: #e2e8f0; color: #64748b;" onclick="closeDrawer()">Cancel</button>
   </div>
 </div>
 
-<div class="toast" id="toast">UPI ID copied!</div>
+<div class="toast" id="toast">UPI ID Copied!</div>
 
 <script>
-  // Hide skeleton
-  window.onload = () => {
+  // Loading State
+  window.addEventListener('load', () => {
     setTimeout(() => {
-      document.getElementById('skeleton').style.opacity = '0';
-      setTimeout(() => document.getElementById('skeleton').style.display = 'none', 500);
-    }, 1000);
-  };
+      const skel = document.getElementById('skeleton');
+      skel.style.opacity = '0';
+      setTimeout(() => skel.style.display = 'none', 500);
+    }, 1200);
+  });
 
-  function openSheet() {
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
+  function openDrawer() {
+    document.getElementById('drawerOverlay').classList.add('show');
   }
 
-  function closeSheet() {
-    document.getElementById('overlay').classList.remove('show');
-    document.body.style.overflow = 'auto';
-  }
-
-  function triggerUPI() {
-    // Generic UPI intent - System will ask which app to use
-    window.location.href = "upi://pay?pa=Rajeshtg18x@ibl&pn=Ask Movies&cu=INR";
+  function closeDrawer() {
+    document.getElementById('drawerOverlay').classList.remove('show');
   }
 
   function copyUPI() {
-    navigator.clipboard.writeText("Rajeshtg18x@ibl");
-    const t = document.getElementById('toast');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
+    const upi = "Rajeshtg18x@ibl";
+    navigator.clipboard.writeText(upi);
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  function launchUPI() {
+    // Standard UPI Intent
+    window.location.href = "upi://pay?pa=Rajeshtg18x@ibl&pn=Ask Movies&cu=INR";
+  }
+
+  function downloadQR() {
+    const link = document.createElement('a');
+    link.href = document.getElementById('qrImage').src;
+    link.download = 'AskMovies_PaymentQR.png';
+    link.click();
   }
 </script>
 
